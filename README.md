@@ -1,6 +1,4 @@
-# HazReg <img src="man/figures/logo.png" align="right" height="139" alt="" />
-
-## Parametric Hazard-Based Regression Models for Survival Data
+# HazReg: Parametric Hazard-Based Regression Models for Survival Data
 
 [![R package](https://img.shields.io/badge/language-R-blue.svg)](https://www.r-project.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
