@@ -1,66 +1,80 @@
-# HazReg R package
+# HazReg <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
-## Overall and Relative (Net) Survival
+## Parametric Hazard-Based Regression Models for Survival Data
 
-The `HazReg` R package implements the following parametric hazard-based regression models for survival data, in the overall and relative survival frameworks.
+[![R package](https://img.shields.io/badge/language-R-blue.svg)](https://www.r-project.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-- General Hazard (GH) model.
+## Overview
 
-- Accelerated Failure Time (AFT) model.
+`HazReg` is an R package for fitting parametric hazard-based regression models
+for survival data in both the **overall survival** and **relative (net) survival**
+frameworks. The package is built around the **General Hazard (GH)** structure,
+which nests the most widely used hazard regression models as special cases:
 
-- Proportional Hazards (PH) model.
+| Model | Abbreviation | Special case of GH |
+|---|---|---|
+| General Hazard | GH | — |
+| Proportional Hazards | PH | ✓ |
+| Accelerated Failure Time | AFT | ✓ |
+| Accelerated Hazards | AH | ✓ |
 
-- Accelerated Hazards (AH) model.
+Models are fitted by maximum likelihood via `nlminb` and `optim`. Users should
+specify initial values and verify convergence of the optimisation, as is standard
+practice for these routines.
 
+## Installation
 
-These models are fitted using the R commands `nlminb` and `optim`. Thus, the user needs to specify the initial points and to check the convergence of the optimisation step, as usual.
-
-
-The current version of the `HazReg` R package implements the following parametric baseline hazards for the models discussed in the previous section, using the commands `GHMLE` and `GEHMLE`.
-
-- [Power Generalised Weibull](http://rpubs.com/FJRubio/PGW) (PGW) distribution. 
- 
-- [Exponentiated Weibull](http://rpubs.com/FJRubio/EWD) (EW) distribution. 
- 
-- [Generalised Gamma](http://rpubs.com/FJRubio/GG) (GenGamma) distribuiton. 
-
-- [Gamma](https://en.wikipedia.org/wiki/Gamma_distribution) (Gamma) distribution. 
-
-- [Lognormal](https://en.wikipedia.org/wiki/Log-normal_distribution) (LogNormal) distribution. 
-
-- [Log-logistic](https://en.wikipedia.org/wiki/Log-logistic_distribution) (LogLogistic) distribution. 
-
-- [Weibull](https://en.wikipedia.org/wiki/Weibull_distribution) (Weibull) distribution. (only for AFT, PH, and AH models) 
-
-
-All positive parameters are transformed into the real line using a `log` link (reparameterisation).
-
-An Illustrative example and a description of the available models can be found at:
-
-- [HazReg: Parametric Hazard-based regression models for survival data](https://rpubs.com/FJRubio/HazReg) [RPubs]
-- [HazReg: Parametric Hazard-based regression models for survival data](https://fjrubio.quarto.pub/hazreg/) [quarto-pub]
-- [HazReg: Parametric Excess Hazard-based regression models for survival data](https://rpubs.com/FJRubio/XHazReg)
-- [simGH: simulating times to event from a general hazard structure](https://rpubs.com/FJRubio/simGH)
-
-```
-library(devtools)
-install_github("FJRubio67/HazReg")
-
+```r
+# install.packages("devtools")
+devtools::install_github("FJRubio67/HazReg")
 library(HazReg)
-
-?GHMLE
-
-?GEHMLE
-
-?hpgw
-
-?hggama
-
-?simGH
 ```
 
+## Main functions
 
-### See also: 
-- [Simulating survival times from a General Hazard structure with a flexible baseline hazard](https://rpubs.com/FJRubio/GHSim)
+| Function | Framework | Description |
+|---|---|---|
+| `GHMLE` | Overall survival | Fits GH, PH, AFT, and AH models |
+| `GEHMLE` | Relative (excess) survival | Fits excess hazard versions of the above |
+| `simGH` | — | Simulates survival times from a GH structure |
+
+For full documentation: `?GHMLE`, `?GEHMLE`, `?simGH`
+
+## Baseline hazard distributions
+
+Both `GHMLE` and `GEHMLE` support the following parametric baseline hazards.
+All positive parameters are log-transformed for unconstrained optimisation.
+
+| Distribution | Key | GH | PH | AFT | AH |
+|---|---|:---:|:---:|:---:|:---:|
+| [Power Generalised Weibull](http://rpubs.com/FJRubio/PGW) | PGW | ✓ | ✓ | ✓ | ✓ |
+| [Exponentiated Weibull](http://rpubs.com/FJRubio/EWD) | EW | ✓ | ✓ | ✓ | ✓ |
+| [Generalised Gamma](http://rpubs.com/FJRubio/GG) | GenGamma | ✓ | ✓ | ✓ | ✓ |
+| [Gamma](https://en.wikipedia.org/wiki/Gamma_distribution) | Gamma | ✓ | ✓ | ✓ | ✓ |
+| [Log-normal](https://en.wikipedia.org/wiki/Log-normal_distribution) | LogNormal | ✓ | ✓ | ✓ | ✓ |
+| [Log-logistic](https://en.wikipedia.org/wiki/Log-logistic_distribution) | LogLogistic | ✓ | ✓ | ✓ | ✓ |
+| [Weibull](https://en.wikipedia.org/wiki/Weibull_distribution) | Weibull | — | ✓ | ✓ | ✓ |
+
+Hazard and related functions (PDF, CDF, survival) are also exported directly,
+e.g. `?hpgw`, `?hggama`.
+
+## Tutorials and examples
+
+- [Overall survival: HazReg models](https://rpubs.com/FJRubio/HazReg) — RPubs
+- [Overall survival: HazReg models](https://fjrubio.quarto.pub/hazreg/) — Quarto Pub
+- [Relative survival: Excess hazard models](https://rpubs.com/FJRubio/XHazReg) — RPubs
+- [Simulating from a GH structure](https://rpubs.com/FJRubio/simGH) — RPubs
+- [Simulating from a GH structure with flexible baseline](https://rpubs.com/FJRubio/GHSim) — RPubs
+
+## Related resources
+
 - [Short course on Parametric Survival Analysis](https://github.com/FJRubio67/ShortCourseParamSurvival)
-- [HazReg.jl](https://github.com/FJRubio67/HazReg.jl)
+- [HazReg.jl](https://github.com/FJRubio67/HazReg.jl) — Julia implementation
+- [MEGH](https://github.com/FJRubio67/MEGH) — GH models for clustered survival data
+- [SimLT](https://github.com/FJRubio67/SimLT) — Simulating survival times from life tables
+
+## Citation
+
+If you use `HazReg` in your work, please cite the package and the relevant
+methodological papers linked in the tutorials above.
