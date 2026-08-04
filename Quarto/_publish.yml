@@ -1,0 +1,4 @@
+- source: HazReg.qmd
+  quarto-pub:
+    - id: ade32a46-5c0d-4f91-9d29-8d434979a771
+      url: 'https://quartopub.com/sites/fjrubio/hazreg'

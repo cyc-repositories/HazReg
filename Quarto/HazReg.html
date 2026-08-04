@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="F. Javier Rubio">
+<meta name="dcterms.date" content="2024-01-03">
+
+<title>HazReg: Parametric Hazard-based regression models for survival data</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="HazReg_files/libs/clipboard/clipboard.min.js"></script>
+<script src="HazReg_files/libs/quarto-html/quarto.js"></script>
+<script src="HazReg_files/libs/quarto-html/popper.min.js"></script>
+<script src="HazReg_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="HazReg_files/libs/quarto-html/anchor.min.js"></script>
+<link href="HazReg_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="HazReg_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="HazReg_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="HazReg_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="HazReg_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#models" id="toc-models" class="nav-link active" data-scroll-target="#models"> <span class="header-section-number">1</span> Models</a>
+  <ul class="collapse">
+  <li><a href="#general-hazard-model" id="toc-general-hazard-model" class="nav-link" data-scroll-target="#general-hazard-model"> <span class="header-section-number">1.1</span> General Hazard model</a></li>
+  <li><a href="#accelerated-failure-time-aft-model" id="toc-accelerated-failure-time-aft-model" class="nav-link" data-scroll-target="#accelerated-failure-time-aft-model"> <span class="header-section-number">1.2</span> Accelerated Failure Time (AFT) model</a></li>
+  <li><a href="#proportional-hazards-ph-model" id="toc-proportional-hazards-ph-model" class="nav-link" data-scroll-target="#proportional-hazards-ph-model"> <span class="header-section-number">1.3</span> Proportional Hazards (PH) model</a></li>
+  <li><a href="#accelerated-hazards-ah-model" id="toc-accelerated-hazards-ah-model" class="nav-link" data-scroll-target="#accelerated-hazards-ah-model"> <span class="header-section-number">1.4</span> Accelerated Hazards (AH) model</a></li>
+  </ul></li>
+  <li><a href="#available-baseline-hazards" id="toc-available-baseline-hazards" class="nav-link" data-scroll-target="#available-baseline-hazards"> <span class="header-section-number">2</span> Available baseline hazards</a></li>
+  <li><a href="#illustrative-example-r-code" id="toc-illustrative-example-r-code" class="nav-link" data-scroll-target="#illustrative-example-r-code"> <span class="header-section-number">3</span> Illustrative example: R code</a>
+  <ul class="collapse">
+  <li><a href="#data-preparation" id="toc-data-preparation" class="nav-link" data-scroll-target="#data-preparation"> <span class="header-section-number">3.1</span> Data preparation</a></li>
+  <li><a href="#model-fit-and-mles" id="toc-model-fit-and-mles" class="nav-link" data-scroll-target="#model-fit-and-mles"> <span class="header-section-number">3.2</span> Model fit and MLEs</a></li>
+  <li><a href="#model-comparison" id="toc-model-comparison" class="nav-link" data-scroll-target="#model-comparison"> <span class="header-section-number">3.3</span> Model Comparison</a></li>
+  <li><a href="#baseline-hazards-for-gh-models" id="toc-baseline-hazards-for-gh-models" class="nav-link" data-scroll-target="#baseline-hazards-for-gh-models"> <span class="header-section-number">3.4</span> Baseline hazards for GH models</a></li>
+  <li><a href="#best-model-summaries" id="toc-best-model-summaries" class="nav-link" data-scroll-target="#best-model-summaries"> <span class="header-section-number">3.5</span> Best-model summaries</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">HazReg: Parametric Hazard-based regression models for survival data</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p><a href="https://sites.google.com/site/fjavierrubio67/">F. Javier Rubio</a> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 3, 2024</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<section id="models" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Models</h1>
+<p>The <code>HazReg</code> R package implements the following parametric hazard-based regression models for (overall) survival data.</p>
+<ul>
+<li><p>General Hazard (GH) model <span class="citation" data-cites="chen:2001">(<a href="#ref-chen:2001" role="doc-biblioref">Chen and Jewell 2001</a>)</span> <span class="citation" data-cites="rubio:2019">(<a href="#ref-rubio:2019" role="doc-biblioref">Rubio et al. 2019</a>)</span>.</p></li>
+<li><p>Accelerated Failure Time (AFT) model <span class="citation" data-cites="kalbfleisch:2011">(<a href="#ref-kalbfleisch:2011" role="doc-biblioref">Kalbfleisch and Prentice 2011</a>)</span>.</p></li>
+<li><p>Proportional Hazards (PH) model <span class="citation" data-cites="cox:1972">(<a href="#ref-cox:1972" role="doc-biblioref">Cox 1972</a>)</span>.</p></li>
+<li><p>Accelerated Hazards (AH) model <span class="citation" data-cites="chen:2000">(<a href="#ref-chen:2000" role="doc-biblioref">Chen and Wang 2000</a>)</span>.</p></li>
+</ul>
+<p>These models are fitted using the R commands <code>nlminb</code> and <code>optim</code>. Thus, the user needs to specify the initial points and to check the convergence of the optimisation step, as usual.</p>
+<p>A description of these hazard models is presented below as well as the available baseline hazards.</p>
+<section id="general-hazard-model" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="general-hazard-model"><span class="header-section-number">1.1</span> General Hazard model</h2>
+<p>The GH model is formulated in terms of the hazard structure $$ h(t; , , , {}) = h_0(t {^{}}; ) {{}^{}}.</p>
+<p>$$ where <span class="math inline">\({\bf x}\in{\mathbb R}^p\)</span> are the covariates that affect the hazard level; <span class="math inline">\(\tilde{\bf x} \in {\mathbb R}^q\)</span> are the covariates the affect the time level (typically <span class="math inline">\(\tilde{\bf x} \subset {\bf x}\)</span>); <span class="math inline">\(\alpha \in {\mathbb R}^q\)</span> and <span class="math inline">\(\beta \in {\mathbb R}^p\)</span> are the regression coefficients; and <span class="math inline">\(\theta \in \Theta\)</span> is the vector of parameters of the baseline hazard <span class="math inline">\(h_0(\cdot)\)</span>.</p>
+<p>This hazard structure leads to an identifiable model as long as the baseline hazard is not a hazard associated to a member of the Weibull family of distributions <span class="citation" data-cites="chen:2001">(<a href="#ref-chen:2001" role="doc-biblioref">Chen and Jewell 2001</a>)</span>.</p>
+</section>
+<section id="accelerated-failure-time-aft-model" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="accelerated-failure-time-aft-model"><span class="header-section-number">1.2</span> Accelerated Failure Time (AFT) model</h2>
+<p>The AFT model is formulated in terms of the hazard structure <span class="math display">\[
+h(t; \beta, \theta, {\bf x}) = h_0\left(t  \exp\{{\bf x}^{\top}\beta\}; \theta\right) \exp\{{\bf x}^{\top}\beta\}.
+\]</span> where <span class="math inline">\({\bf x}\in{\mathbb R}^p\)</span> are the available covariates;</p>
+<p><span class="math inline">\(\beta \in {\mathbb R}^p\)</span> are the regression coefficients; and <span class="math inline">\(\theta \in \Theta\)</span> is the vector of parameters of the baseline hazard <span class="math inline">\(h_0(\cdot)\)</span>.</p>
+</section>
+<section id="proportional-hazards-ph-model" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="proportional-hazards-ph-model"><span class="header-section-number">1.3</span> Proportional Hazards (PH) model</h2>
+<p>The PH model is formulated in terms of the hazard structure $$ h(t; , , {}) = h_0(t ; ) {{}^{}}.</p>
+<p>$$ where <span class="math inline">\({\bf x}\in{\mathbb R}^p\)</span> are the available covariates; <span class="math inline">\(\beta \in {\mathbb R}^p\)</span> are the regression coefficients; and <span class="math inline">\(\theta \in \Theta\)</span> is the vector of parameters of the baseline hazard <span class="math inline">\(h_0(\cdot)\)</span>.</p>
+</section>
+<section id="accelerated-hazards-ah-model" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="accelerated-hazards-ah-model"><span class="header-section-number">1.4</span> Accelerated Hazards (AH) model</h2>
+<p>The AH model is formulated in terms of the hazard structure <span class="math display">\[
+h(t; \alpha, \theta, \tilde{\bf x}) = h_0\left(t \exp\{\tilde{\bf x}^{\top}\alpha\}; \theta\right) .
+\]</span> where <span class="math inline">\(\tilde{\bf x}\in{\mathbb R}^q\)</span> are the available covariates;</p>
+<p><span class="math inline">\(\alpha \in {\mathbb R}^q\)</span> are the regression coefficients; and <span class="math inline">\(\theta \in \Theta\)</span> is the vector of parameters of the baseline hazard <span class="math inline">\(h_0(\cdot)\)</span>.</p>
+</section>
+</section>
+<section id="available-baseline-hazards" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Available baseline hazards</h1>
+<p>The current version of the <code>HazReg</code> R package implements the following parametric baseline hazards for the models discussed in the previous section.</p>
+<ul>
+<li><p><a href="http://rpubs.com/FJRubio/PGW">Power Generalised Weibull</a> (PGW) distribution.</p></li>
+<li><p><a href="http://rpubs.com/FJRubio/EWD">Exponentiated Weibull</a> (EW) distribution.</p></li>
+<li><p><a href="http://rpubs.com/FJRubio/GG">Generalised Gamma</a> (GG) distribution.</p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Gamma_distribution">Gamma</a> (G) distribution.</p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Log-normal_distribution">Lognormal</a> (LN) distribution.</p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Log-logistic_distribution">Log-logistic</a> (LL) distribution.</p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Weibull_distribution">Weibull</a> (W) distribution. (only for AFT, PH, and AH models)</p></li>
+</ul>
+<p>All positive parameters are transformed into the real line using a <code>log</code> reparameterisation.</p>
+</section>
+<section id="illustrative-example-r-code" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Illustrative example: R code</h1>
+<p>In this example, we analyse the <code>LeukSurv</code> data set from the R package <code>spBayesSurv</code>. This data set contains information about the survival of acute myeloid leukemia in 1,043 patients.</p>
+<p>For the GH model, we consider the hazard level covariates (<span class="math inline">\({\bf x}\)</span>) age (standardised), sex, wbc (white blood cell count at diagnosis, standardised), and tpi (the Townsend score, standardised); and the time level covariates (<span class="math inline">\({\bf x}\)</span>) age (standardised), wbc (white blood cell count at diagnosis, standardised), and tpi (the Townsend score, standardised). For the PH, AFT, and AH models, we consider the covariates age (standardised), sex, wbc (white blood cell count at diagnosis, standardised), and tpi (the Townsend score, standardised).</p>
+<p>For illustration, we fit the 4 models with both (3-parameter) PGW and (2-parameter) LL baseline hazard. In addition, we fit the GH model with GG, EW, LN, and G baseline hazards. We compare these models in terms of AIC (BIC can be used as well). We summarise the best selected model with the available tools in this package.</p>
+<p>See also: <a href="https://github.com/FJRubio67/GHSurv">GHSurv</a>, <a href="https://github.com/FJRubio67/LBANS">LBANS</a></p>
+<section id="data-preparation" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="data-preparation"><span class="header-section-number">3.1</span> Data preparation</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Required packages</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#library(devtools)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#install_github("FJRubio67/HazReg")</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(HazReg)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(numDeriv)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(spBayesSurv)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mvtnorm)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Data</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(LeukSurv)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Design matrix for hazard level effects</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">cbind</span>(<span class="fu">scale</span>(LeukSurv<span class="sc">$</span>age), LeukSurv<span class="sc">$</span>sex, <span class="fu">scale</span>(LeukSurv<span class="sc">$</span>wbc), <span class="fu">scale</span>(LeukSurv<span class="sc">$</span>tpi) ))</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Design matrix for time level effects</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>Xt <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">cbind</span>(<span class="fu">scale</span>(LeukSurv<span class="sc">$</span>age), <span class="fu">scale</span>(LeukSurv<span class="sc">$</span>wbc), <span class="fu">scale</span>(LeukSurv<span class="sc">$</span>tpi)))</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Vital status</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>status <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(LeukSurv<span class="sc">$</span>cens)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Survival times</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>times <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(LeukSurv<span class="sc">$</span>time)<span class="sc">/</span><span class="fl">365.24</span> <span class="co"># in years</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram of survival times</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(times, <span class="at">probability =</span> <span class="cn">TRUE</span>, <span class="at">breaks =</span> <span class="dv">30</span>)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="fu">box</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="HazReg_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="model-fit-and-mles" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="model-fit-and-mles"><span class="header-section-number">3.2</span> Model fit and MLEs</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># PGWGH</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>OPTPGWGH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">3</span> <span class="sc">+</span> <span class="fu">ncol</span>(X) <span class="sc">+</span> <span class="fu">ncol</span>(Xt)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">hstr =</span> <span class="st">"GH"</span>, <span class="at">dist =</span> <span class="st">"PGW"</span>, <span class="at">des =</span> X, <span class="at">des_t =</span> Xt, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># PGWAFT</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>OPTPGWAFT <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">3</span> <span class="sc">+</span> <span class="fu">ncol</span>(X)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                    <span class="at">hstr =</span> <span class="st">"AFT"</span>, <span class="at">dist =</span> <span class="st">"PGW"</span>, <span class="at">des =</span> X, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># PGWPH</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>OPTPGWPH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">3</span> <span class="sc">+</span> <span class="fu">ncol</span>(X)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                   <span class="at">hstr =</span> <span class="st">"PH"</span>, <span class="at">dist =</span> <span class="st">"PGW"</span>, <span class="at">des =</span> X, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># PGWAH</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>OPTPGWAH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">3</span> <span class="sc">+</span> <span class="fu">ncol</span>(X)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                   <span class="at">hstr =</span> <span class="st">"AH"</span>, <span class="at">dist =</span> <span class="st">"PGW"</span>, <span class="at">des_t =</span> X, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># LLGH</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>OPTLLGH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">+</span> <span class="fu">ncol</span>(X) <span class="sc">+</span> <span class="fu">ncol</span>(Xt)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                 <span class="at">hstr =</span> <span class="st">"GH"</span>, <span class="at">dist =</span> <span class="st">"LogLogistic"</span>, <span class="at">des =</span> X, <span class="at">des_t =</span> Xt, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co"># LLAFT</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>OPTLLAFT <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">+</span> <span class="fu">ncol</span>(X)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>                  <span class="at">hstr =</span> <span class="st">"AFT"</span>, <span class="at">dist =</span> <span class="st">"LogLogistic"</span>, <span class="at">des =</span> X, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co"># LLPH</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>OPTLLPH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">+</span> <span class="fu">ncol</span>(X)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>                 <span class="at">hstr =</span> <span class="st">"PH"</span>, <span class="at">dist =</span> <span class="st">"LogLogistic"</span>, <span class="at">des =</span> X, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co"># LLAH</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>OPTLLAH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">+</span> <span class="fu">ncol</span>(X)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>                 <span class="at">hstr =</span> <span class="st">"AH"</span>, <span class="at">dist =</span> <span class="st">"LogLogistic"</span>, <span class="at">des_t =</span> X, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co"># EWGH</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>OPTEWGH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">3</span> <span class="sc">+</span> <span class="fu">ncol</span>(X) <span class="sc">+</span> <span class="fu">ncol</span>(Xt)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>                 <span class="at">hstr =</span> <span class="st">"GH"</span>, <span class="at">dist =</span> <span class="st">"EW"</span>, <span class="at">des =</span> X, <span class="at">des_t =</span> Xt, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co"># GGGH</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>OPTGGGH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">3</span> <span class="sc">+</span> <span class="fu">ncol</span>(X) <span class="sc">+</span> <span class="fu">ncol</span>(Xt)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>                 <span class="at">hstr =</span> <span class="st">"GH"</span>, <span class="at">dist =</span> <span class="st">"GenGamma"</span>, <span class="at">des =</span> X, <span class="at">des_t =</span> Xt, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co"># LNGH</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>OPTLNGH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">+</span> <span class="fu">ncol</span>(X) <span class="sc">+</span> <span class="fu">ncol</span>(Xt)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>                 <span class="at">hstr =</span> <span class="st">"GH"</span>, <span class="at">dist =</span> <span class="st">"LogNormal"</span>, <span class="at">des =</span> X, <span class="at">des_t =</span> Xt, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co"># GGH</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>OPTGGH <span class="ot">&lt;-</span> <span class="fu">GHMLE</span>(<span class="at">init =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">+</span> <span class="fu">ncol</span>(X) <span class="sc">+</span> <span class="fu">ncol</span>(Xt)), <span class="at">times =</span> times, <span class="at">status =</span> status, </span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>               <span class="at">hstr =</span> <span class="st">"GH"</span>, <span class="at">dist =</span> <span class="st">"Gamma"</span>, <span class="at">des =</span> X, <span class="at">des_t =</span> Xt, <span class="at">method =</span> <span class="st">"nlminb"</span>, <span class="at">maxit =</span> <span class="dv">10000</span>)</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="co"># MLEs in the original parameterisations</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>MLEPGWGH <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">exp</span>(OPTPGWGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]),OPTPGWGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)])</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>MLEEWGH <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">exp</span>(OPTEWGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]),OPTEWGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)])</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>MLEGGGH <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">exp</span>(OPTGGGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]),OPTGGGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)])</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>MLEGGH <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">exp</span>(OPTGGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]),OPTGGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)])</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>MLELNGH <span class="ot">&lt;-</span> <span class="fu">c</span>(OPTLNGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">1</span>], <span class="fu">exp</span>(OPTLNGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">2</span>]), OPTLNGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>MLELLGH <span class="ot">&lt;-</span> <span class="fu">c</span>(OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">1</span>], <span class="fu">exp</span>(OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">2</span>]), OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>MLES <span class="ot">&lt;-</span> <span class="fu">cbind</span>(MLEPGWGH, MLEEWGH, MLEGGGH, <span class="fu">c</span>(MLEGGH[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="cn">NA</span>, MLEGGH[<span class="sc">-</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)]), </span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>              <span class="fu">c</span>(MLELNGH[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="cn">NA</span>, MLELNGH[<span class="sc">-</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)]), <span class="fu">c</span>(MLELLGH[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="cn">NA</span>, MLELLGH[<span class="sc">-</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)]))</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(MLES) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PGWGH"</span>, <span class="st">"EWGH"</span>, <span class="st">"GGGH"</span>, <span class="st">"GGH"</span>, <span class="st">"LNGH"</span>, <span class="st">"LLGH"</span>)</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(MLES) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"theta[1]"</span>,<span class="st">"theta[2]"</span>,<span class="st">"theta[3]"</span>,<span class="st">"age_t"</span>,<span class="st">"wbc_t"</span>,<span class="st">"tpi_t"</span>,<span class="st">"age"</span>, <span class="st">"sex"</span>,<span class="st">"wbc"</span>,<span class="st">"tpi"</span>)</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="co"># MLEs for GH models</span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="co"># theta[1] in GGGH &lt; 0.001, which is the reason why the rounded value appears as 0.000</span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(MLES, <span class="at">digits =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">PGWGH</th>
+<th style="text-align: right;">EWGH</th>
+<th style="text-align: right;">GGGH</th>
+<th style="text-align: right;">GGH</th>
+<th style="text-align: right;">LNGH</th>
+<th style="text-align: right;">LLGH</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">theta[1]</td>
+<td style="text-align: right;">0.095</td>
+<td style="text-align: right;">0.006</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.488</td>
+<td style="text-align: right;">-0.730</td>
+<td style="text-align: right;">-0.718</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">theta[2]</td>
+<td style="text-align: right;">1.006</td>
+<td style="text-align: right;">0.219</td>
+<td style="text-align: right;">3.083</td>
+<td style="text-align: right;">4.118</td>
+<td style="text-align: right;">1.981</td>
+<td style="text-align: right;">1.126</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">theta[3]</td>
+<td style="text-align: right;">3.474</td>
+<td style="text-align: right;">8.957</td>
+<td style="text-align: right;">0.087</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">age_t</td>
+<td style="text-align: right;">0.911</td>
+<td style="text-align: right;">0.886</td>
+<td style="text-align: right;">0.900</td>
+<td style="text-align: right;">-0.800</td>
+<td style="text-align: right;">0.853</td>
+<td style="text-align: right;">0.828</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">wbc_t</td>
+<td style="text-align: right;">0.898</td>
+<td style="text-align: right;">0.847</td>
+<td style="text-align: right;">0.868</td>
+<td style="text-align: right;">-0.511</td>
+<td style="text-align: right;">0.788</td>
+<td style="text-align: right;">0.741</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">tpi_t</td>
+<td style="text-align: right;">0.413</td>
+<td style="text-align: right;">0.407</td>
+<td style="text-align: right;">0.444</td>
+<td style="text-align: right;">-0.592</td>
+<td style="text-align: right;">0.370</td>
+<td style="text-align: right;">0.420</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0.979</td>
+<td style="text-align: right;">0.969</td>
+<td style="text-align: right;">0.972</td>
+<td style="text-align: right;">0.338</td>
+<td style="text-align: right;">0.958</td>
+<td style="text-align: right;">0.949</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">sex</td>
+<td style="text-align: right;">0.077</td>
+<td style="text-align: right;">0.071</td>
+<td style="text-align: right;">0.067</td>
+<td style="text-align: right;">0.148</td>
+<td style="text-align: right;">0.074</td>
+<td style="text-align: right;">0.072</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">wbc</td>
+<td style="text-align: right;">0.681</td>
+<td style="text-align: right;">0.656</td>
+<td style="text-align: right;">0.662</td>
+<td style="text-align: right;">0.004</td>
+<td style="text-align: right;">0.630</td>
+<td style="text-align: right;">0.609</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">tpi</td>
+<td style="text-align: right;">0.303</td>
+<td style="text-align: right;">0.302</td>
+<td style="text-align: right;">0.317</td>
+<td style="text-align: right;">-0.115</td>
+<td style="text-align: right;">0.287</td>
+<td style="text-align: right;">0.315</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="model-comparison" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="model-comparison"><span class="header-section-number">3.3</span> Model Comparison</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># AIC for models with PGW baseline hazard</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>AICPGWGH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTPGWGH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTPGWGH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>AICPGWAFT <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTPGWAFT<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTPGWAFT<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>AICPGWPH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTPGWPH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTPGWPH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>AICPGWAH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTPGWAH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTPGWAH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># AICs for models with LL baseline hazard</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>AICLLGH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>AICLLAFT <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTLLAFT<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTLLAFT<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>AICLLPH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTLLPH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTLLPH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>AICLLAH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTLLAH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTLLAH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># AICs for GH models with GG, EW, LN, and G hazards</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>AICGGGH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTGGGH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTGGGH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>AICEWGH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTEWGH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTEWGH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>AICLNGH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTLNGH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTLNGH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>AICGGH <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>OPTGGH<span class="sc">$</span>OPT<span class="sc">$</span>objective <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(OPTGGH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co"># All AICs</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>AICs <span class="ot">&lt;-</span> <span class="fu">c</span>(AICPGWGH, AICPGWAFT, AICPGWPH, AICPGWAH,</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>          AICLLGH, AICLLAFT, AICLLPH, AICLLAH,</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>          AICGGGH, AICEWGH, AICLNGH, AICGGH)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(AICs, <span class="at">digits =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 1537.24 1539.48 1586.48 1628.54 1527.41 1529.38 1580.56 1664.46 1534.79
+[10] 1533.73 1533.68 1705.96</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Best model: LLGH</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">which.min</span>(AICs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 5</code></pre>
+</div>
+</div>
+</section>
+<section id="baseline-hazards-for-gh-models" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="baseline-hazards-for-gh-models"><span class="header-section-number">3.4</span> Baseline hazards for GH models</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitted baseline hazard functions for GH models</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>PGWGHhaz <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(t) <span class="fu">hpgw</span>(t, MLEPGWGH[<span class="dv">1</span>], MLEPGWGH[<span class="dv">2</span>], MLEPGWGH[<span class="dv">3</span>]) ) </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>EWGHhaz <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(t) <span class="fu">hew</span>(t, MLEEWGH[<span class="dv">1</span>], MLEEWGH[<span class="dv">2</span>], MLEEWGH[<span class="dv">3</span>]) ) </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>GGGHhaz <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(t) <span class="fu">hggamma</span>(t, MLEGGGH[<span class="dv">1</span>], MLEGGGH[<span class="dv">2</span>], MLEGGGH[<span class="dv">3</span>]) ) </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>GGHhaz <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(t) <span class="fu">hgamma</span>(t, MLEGGH[<span class="dv">1</span>], MLEGGH[<span class="dv">2</span>]) ) </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>LNGHhaz <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(t) <span class="fu">hlnorm</span>(t, MLELNGH[<span class="dv">1</span>], MLELNGH[<span class="dv">2</span>])) </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>LLGHhaz <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(t) <span class="fu">hllogis</span>(t, MLELLGH[<span class="dv">1</span>], MLELLGH[<span class="dv">2</span>])) </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Note that the baseline hazards associated to the top models look similar</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(PGWGHhaz,<span class="fl">1e-6</span>, <span class="fu">max</span>(times), <span class="at">xlab =</span> <span class="st">"Time (years)"</span>, <span class="at">ylab =</span> <span class="st">"Baseline Hazard"</span>, <span class="at">main =</span> <span class="st">""</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">cex.axis =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">4</span>), <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(EWGHhaz,<span class="fl">1e-6</span>, <span class="fu">max</span>(times), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">add =</span> <span class="cn">TRUE</span>) </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(GGGHhaz,<span class="fl">1e-6</span>, <span class="fu">max</span>(times), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">lty =</span> <span class="dv">3</span>, <span class="at">add =</span> <span class="cn">TRUE</span>) </span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(GGHhaz,<span class="fl">1e-6</span>, <span class="fu">max</span>(times), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">lty =</span> <span class="dv">4</span>, <span class="at">add =</span> <span class="cn">TRUE</span>) </span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(LNGHhaz,<span class="fl">1e-6</span>, <span class="fu">max</span>(times), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">lty =</span> <span class="dv">5</span>, <span class="at">add =</span> <span class="cn">TRUE</span>) </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(LLGHhaz,<span class="fl">1e-6</span>, <span class="fu">max</span>(times), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">lty =</span> <span class="dv">6</span>, <span class="at">add =</span> <span class="cn">TRUE</span>) </span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"PGWGH"</span>, <span class="st">"EWGH"</span>, <span class="st">"GGGH"</span>, <span class="st">"GGH"</span>, <span class="st">"LNGH"</span>, <span class="st">"LLGH"</span>), <span class="at">lwd =</span> <span class="fu">rep</span>(<span class="dv">2</span>,<span class="dv">6</span>), <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="HazReg_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="best-model-summaries" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="best-model-summaries"><span class="header-section-number">3.5</span> Best-model summaries</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># MLE in the original parameterisation</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>MLE <span class="ot">&lt;-</span> <span class="fu">c</span>(OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">1</span>], <span class="fu">exp</span>(OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="dv">2</span>]), OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(MLE, <span class="at">digits =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -0.718  1.126  0.828  0.741  0.420  0.949  0.072  0.609  0.315</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 95% Confidence intervals under the reparameterisation</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>CI <span class="ot">&lt;-</span> <span class="fu">Conf_Int</span>(<span class="at">FUN =</span> OPTLLGH<span class="sc">$</span>log_lik, <span class="at">MLE =</span> OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(CI) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"theta[1]"</span>,<span class="st">"theta[2]"</span>,<span class="st">"age_t"</span>,<span class="st">"wbc_t"</span>,<span class="st">"tpi_t"</span>,<span class="st">"age"</span>, <span class="st">"sex"</span>,<span class="st">"wbc"</span>,<span class="st">"tpi"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(CI, <span class="at">digits =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">Lower</th>
+<th style="text-align: right;">Upper</th>
+<th style="text-align: right;">Transf MLE</th>
+<th style="text-align: right;">Std. Error</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">theta[1]</td>
+<td style="text-align: right;">-0.884</td>
+<td style="text-align: right;">-0.553</td>
+<td style="text-align: right;">-0.718</td>
+<td style="text-align: right;">0.084</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">theta[2]</td>
+<td style="text-align: right;">0.060</td>
+<td style="text-align: right;">0.177</td>
+<td style="text-align: right;">0.119</td>
+<td style="text-align: right;">0.030</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">age_t</td>
+<td style="text-align: right;">0.528</td>
+<td style="text-align: right;">1.128</td>
+<td style="text-align: right;">0.828</td>
+<td style="text-align: right;">0.153</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">wbc_t</td>
+<td style="text-align: right;">0.492</td>
+<td style="text-align: right;">0.989</td>
+<td style="text-align: right;">0.741</td>
+<td style="text-align: right;">0.127</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">tpi_t</td>
+<td style="text-align: right;">0.120</td>
+<td style="text-align: right;">0.720</td>
+<td style="text-align: right;">0.420</td>
+<td style="text-align: right;">0.153</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0.791</td>
+<td style="text-align: right;">1.107</td>
+<td style="text-align: right;">0.949</td>
+<td style="text-align: right;">0.081</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">sex</td>
+<td style="text-align: right;">-0.058</td>
+<td style="text-align: right;">0.202</td>
+<td style="text-align: right;">0.072</td>
+<td style="text-align: right;">0.066</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">wbc</td>
+<td style="text-align: right;">0.446</td>
+<td style="text-align: right;">0.773</td>
+<td style="text-align: right;">0.609</td>
+<td style="text-align: right;">0.083</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">tpi</td>
+<td style="text-align: right;">0.149</td>
+<td style="text-align: right;">0.481</td>
+<td style="text-align: right;">0.315</td>
+<td style="text-align: right;">0.085</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitted baseline hazard function</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fit_haz <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(t) <span class="fu">hllogis</span>(t, MLE[<span class="dv">1</span>], MLE[<span class="dv">2</span>])) </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(fit_haz,<span class="fl">0.001</span>, <span class="fu">max</span>(times), <span class="at">xlab =</span> <span class="st">"Time (years)"</span>, <span class="at">ylab =</span> <span class="st">"Baseline Hazard"</span>, <span class="at">main =</span> <span class="st">""</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">cex.axis =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">4</span>), <span class="at">n =</span> <span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="HazReg_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Average population survival function and KM estimator</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>pop_surv <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(t){</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  p0 <span class="ot">&lt;-</span> <span class="fu">dim</span>(Xt)[<span class="dv">2</span>]</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  p1 <span class="ot">&lt;-</span> <span class="fu">dim</span>(X)[<span class="dv">2</span>]</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  theta1 <span class="ot">&lt;-</span> MLE[<span class="dv">1</span>]; theta2 <span class="ot">&lt;-</span> MLE[<span class="dv">2</span>]; alpha <span class="ot">&lt;-</span> MLE[<span class="dv">3</span><span class="sc">:</span>(<span class="dv">2</span><span class="sc">+</span>p0)]; beta <span class="ot">&lt;-</span> MLE[(<span class="dv">3</span><span class="sc">+</span>p0)<span class="sc">:</span>(<span class="dv">2</span><span class="sc">+</span>p0<span class="sc">+</span>p1)]</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  x.alpha <span class="ot">&lt;-</span> Xt<span class="sc">%*%</span>alpha</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  x.dif <span class="ot">&lt;-</span> X<span class="sc">%*%</span>beta <span class="sc">-</span> x.alpha</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">mean</span>( <span class="fu">exp</span>( <span class="sc">-</span> <span class="fu">chllogis</span>(t<span class="sc">*</span><span class="fu">exp</span>(x.alpha), theta1, theta2)<span class="sc">*</span><span class="fu">exp</span>(x.dif)  )  )</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(out)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Kaplan-Meier estimator </span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>km <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(times, status) <span class="sc">~</span> <span class="dv">1</span>)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparison</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(km<span class="sc">$</span>time, km<span class="sc">$</span>surv, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Time (years)"</span>, <span class="at">ylab =</span> <span class="st">"Population Survival"</span>, <span class="at">main =</span> <span class="st">""</span>,</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.axis =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(pop_surv,<span class="fl">0.001</span>,<span class="dv">14</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"gray"</span>)</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"KM"</span>,<span class="st">"Parametric"</span>), <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>,<span class="st">"gray"</span>), <span class="at">lwd =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>), <span class="at">lty =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="HazReg_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Confidence intervals for the survival function based on a normal approximation</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># at specific time points t0</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Hessian and asymptotic covariance matrix</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>HESS <span class="ot">&lt;-</span> <span class="fu">hessian</span>(<span class="at">func =</span> OPTLLGH<span class="sc">$</span>log_lik, <span class="at">x =</span> OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">solve</span>(HESS)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Reparameterised MLE </span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>r.MLE <span class="ot">&lt;-</span> OPTLLGH<span class="sc">$</span>OPT<span class="sc">$</span>par</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co"># The function to obtain approximate CIs based on Monte Carlo simulations </span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co"># from the asymptotic normal distribution of the MLEs</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co"># t0 : time where the confidence interval will be calculated</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co"># level : confidence level</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co"># n.mc : number of Monte Carlo iterations</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>conf.int.surv <span class="ot">&lt;-</span> <span class="cf">function</span>(t0, level, n.mc){</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  p0 <span class="ot">&lt;-</span> <span class="fu">dim</span>(Xt)[<span class="dv">2</span>]</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  p1 <span class="ot">&lt;-</span> <span class="fu">dim</span>(X)[<span class="dv">2</span>]</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  mc <span class="ot">&lt;-</span> <span class="fu">vector</span>()</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  S.par <span class="ot">&lt;-</span> <span class="cf">function</span>(par){ <span class="fu">mean</span>( <span class="fu">exp</span>( <span class="sc">-</span> <span class="fu">chllogis</span>(t0<span class="sc">*</span><span class="fu">exp</span>(Xt<span class="sc">%*%</span>par[<span class="dv">3</span><span class="sc">:</span>(<span class="dv">2</span><span class="sc">+</span>p0)]), par[<span class="dv">1</span>], par[<span class="dv">2</span>])<span class="sc">*</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">exp</span>(X<span class="sc">%*%</span>par[(<span class="dv">3</span><span class="sc">+</span>p0)<span class="sc">:</span>(<span class="dv">2</span><span class="sc">+</span>p0<span class="sc">+</span>p1)]<span class="sc">-</span>Xt<span class="sc">%*%</span>par[<span class="dv">3</span><span class="sc">:</span>(<span class="dv">2</span><span class="sc">+</span>p0)])  )  )</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n.mc) {</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    val <span class="ot">&lt;-</span> <span class="fu">rmvnorm</span>(<span class="dv">1</span>,<span class="at">mean =</span> r.MLE, <span class="at">sigma =</span> Sigma)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    val[<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">exp</span>(val[<span class="dv">2</span>])</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>    mc[i] <span class="ot">&lt;-</span> <span class="fu">S.par</span>(val)</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>  L <span class="ot">&lt;-</span> <span class="fu">quantile</span>(mc,(<span class="dv">1</span><span class="sc">-</span>level)<span class="sc">*</span><span class="fl">0.5</span>)</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>  U <span class="ot">&lt;-</span> <span class="fu">quantile</span>(mc,(<span class="dv">1</span><span class="sc">+</span>level)<span class="sc">*</span><span class="fl">0.5</span>)</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>  M <span class="ot">&lt;-</span> <span class="fu">S.par</span>(MLE)</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">c</span>(L,M,U))</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a><span class="co"># times for CIs calculations</span></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>timesCI <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">2.5</span>,<span class="dv">5</span>,<span class="fl">7.5</span>,<span class="dv">10</span>,<span class="fl">12.5</span>)</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>CIS <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">ncol =</span> <span class="dv">4</span>, <span class="at">nrow =</span> <span class="fu">length</span>(timesCI))</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(timesCI)) CIS[k,] <span class="ot">&lt;-</span> <span class="fu">c</span>(timesCI[k],<span class="fu">conf.int.surv</span>(timesCI[k],<span class="fl">0.95</span>,<span class="dv">10000</span>))</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(CIS) <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="st">"year"</span>,<span class="st">"lower"</span>,<span class="st">"population survival"</span>,<span class="st">"upper"</span>)</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">kable</span>(CIS,<span class="at">digits=</span><span class="dv">4</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+
+| year|  lower| population survival|  upper|
+|----:|------:|-------------------:|------:|
+|  1.0| 0.3355|              0.3568| 0.3795|
+|  2.5| 0.2010|              0.2191| 0.2403|
+|  5.0| 0.1274|              0.1428| 0.1607|
+|  7.5| 0.0954|              0.1089| 0.1261|
+| 10.0| 0.0767|              0.0892| 0.1055|
+| 12.5| 0.0644|              0.0761| 0.0914|</code></pre>
+</div>
+</div>
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-chen:2001" class="csl-entry" role="doc-biblioentry">
+Chen, Y. Q., and N. P. Jewell. 2001. <span>“On a General Class of Semiparametric Hazards Regression Models.”</span> <em>Biometrika</em> 88 (3): 687–702.
+</div>
+<div id="ref-chen:2000" class="csl-entry" role="doc-biblioentry">
+Chen, Y. Q., and M. C. Wang. 2000. <span>“Analysis of Accelerated Hazards Models.”</span> <em>Journal of the American Statistical Association</em> 95 (450): 608–18.
+</div>
+<div id="ref-cox:1972" class="csl-entry" role="doc-biblioentry">
+Cox, D. R. 1972. <span>“Regression Models and Life-Tables.”</span> <em>Journal of the Royal Statistical Society: Series B (Methodological)</em> 34 (2): 187–202.
+</div>
+<div id="ref-kalbfleisch:2011" class="csl-entry" role="doc-biblioentry">
+Kalbfleisch, J. D., and R. L. Prentice. 2011. <em>The Statistical Analysis of Failure Time Data</em>. John Wiley &amp; Sons.
+</div>
+<div id="ref-rubio:2019" class="csl-entry" role="doc-biblioentry">
+Rubio, F. J., L. Remontet, N. P. Jewell, and A. Belot. 2019. <span>“On a General Structure for Hazard-Based Regression Models: An Application to Population-Based Cancer Research.”</span> <em>Statistical Methods in Medical Research</em> 28: 2404–17.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
