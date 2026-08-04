@@ -59,11 +59,9 @@ e.g. `?hpgw`, `?hggama`.
 
 ## Tutorials and examples
 
-- [Overall survival: HazReg models](https://rpubs.com/FJRubio/HazReg) — RPubs
-- [Overall survival: HazReg models](https://fjrubio.quarto.pub/hazreg/) — Quarto Pub
-- [Relative survival: Excess hazard models](https://rpubs.com/FJRubio/XHazReg) — RPubs
-- [Simulating from a GH structure](https://rpubs.com/FJRubio/simGH) — RPubs
-- [Simulating from a GH structure with flexible baseline](https://rpubs.com/FJRubio/GHSim) — RPubs
+- [Overall survival: HazReg models](https://fjrubio-hazreg.share.connect.posit.cloud/) — Cloud Connect
+- [Relative survival: Excess hazard models](https://fjrubio-xhazreg.share.connect.posit.cloud/) — Cloud Connect
+- [Simulating from a GH structure](https://fjrubio-simgh.share.connect.posit.cloud/) — Cloud Connect
 
 ## Related resources
 
