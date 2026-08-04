@@ -62,6 +62,7 @@ e.g. `?hpgw`, `?hggama`.
 - [Overall survival: HazReg models](https://fjrubio-hazreg.share.connect.posit.cloud/) — Cloud Connect
 - [Relative survival: Excess hazard models](https://fjrubio-xhazreg.share.connect.posit.cloud/) — Cloud Connect
 - [Simulating from a GH structure](https://fjrubio-simgh.share.connect.posit.cloud/) — Cloud Connect
+- [Simulating survival times from a General Hazard structure with a flexible baseline hazard](https://fjrubio-ghsim.share.connect.posit.cloud/)
 
 ## Related resources
 
