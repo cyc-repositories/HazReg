@@ -1,0 +1,218 @@
+---
+title: "Simulating survival times from a General Hazard structure with a flexible baseline hazard"
+author: '[F. Javier Rubio](https://sites.google.com/site/fjavierrubio67/)'
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output:
+  html_document:
+    toc: true
+    toc_float: true
+bibliography: references.bib
+---
+
+# The General Hazard Structure
+
+Throughout, we express the different hazard structures below via the hazard function $h()$ and the cumulative hazard function $H()$, respectively, according to time $t$ and a vector of covariates ${\bf x}_j$. We assume that the vector of covariates does not contain an intercept, in order to avoid identifiability issues. The survival function can be obtained from the relationship $S(t) = \exp[-H(t)]$. The vector $\beta$ denotes the unknown regression parameters.
+
+The following hazard structures have been largely studied and used in the statistical literature:
+
+* Proportional hazards model (PH).
+$$
+h^{\text{PH}}\left(t;{\bf x}_j\right) = h_0(t)\exp\left({\bf x}_j^{\top}\beta\right),
+$$
+$$H^{\text{PH}}\left(t;{\bf x}_j\right) = H_0(t)\exp\left({\bf x}_j^{\top}\beta\right).
+$$
+* Accelerated failure time model (AFT).
+$$
+h^{\text{AFT}}\left(t;{\bf x}_j\right) = h_0\left(t \exp({\bf x}_j^{\top}\beta)\right)\exp({\bf x}_j^{\top}\beta),
+$$
+$$
+H^{\text{AFT}}\left(t;{\bf x}_j\right) = H_0\left(t \exp({\bf x}_j^{\top}\beta)\right).
+$$
+Consider now the following general hazard (GH) structure 
+
+* General hazards model (GH).
+$$
+h^{\text{GH}}\left(t;{\bf x}_j\right) = h_0\left(t \exp({\bf x}_j^{\top}\beta_1)\right)\exp({\bf x}_j^{\top}\beta_2),
+$$
+$$  
+H^{\text{GH}}\left(t;{\bf x}_j\right) = H_0\left(t \exp({\bf x}_j^{\top}\beta_1)\right)\exp(-{\bf x}_j^{\top}\beta_1+{\bf x}_j^{\top}\beta_2).
+$$
+
+This is a rich hazard structures that contains both the PH (when $\beta_1=0$) and the AFT (when $\beta_1=\beta_2$) hazard structures  (see @C00, @C01, @C03, and @R18 for extensive discussion). In addition, it contains the following hazard structure for the cases $\beta_2=0$.
+
+* Accelerated hazards model (AH).
+$$
+  h^{\text{AH}}\left(t;{\bf x}_j\right) = h_0\left(t \exp({\bf x}_j^{\top}\beta)\right),
+$$
+  $$
+  H^{\text{AH}}\left(t;{\bf x}_j\right) = H_0\left(t \exp({\bf x}_j^{\top}\beta)\right)\exp(-{\bf x}_j^{\top}\beta).
+$$
+
+Consequently, the GH hazard structure can capture time-dependent effects (through $\beta_1$) as well as effects that only affect the hazard level (through $\beta_2$). 
+
+# Choosing the baseline hazard
+
+In order to complete the GH model, we need to select a baseline hazard $h_0$. Ideally, we would like to use a parametric distribution that can capture a variety of shapes, such as increasing, decreasing, bathtub, and unimodal (up then down). See @R18 for a discussion on this point. There exist a couple of options, such as the Generalised Weibull distribution, the Exponentiated Weibull distribution, the Generalised Gamma distribution, among others. 
+
+In this tutorial, and for the sake of simplicity, we will only consider the Exponentiated Weibull (EW) distribution, which is implemented and described at [this link](http://rpubs.com/FJRubio/EWD).
+
+The GH hazard structure with EW baseline hazard has been recently used in the context of cancer epidemiology in @R18 and @R19, see:
+
+  1. [Parametric Excess Hazard Estimation: Proportional Hazards](http://www.rpubs.com/FJRubio/GHPH)
+  2. [Parametric Excess Hazard Estimation: General Hazards](http://www.rpubs.com/FJRubio/GHGH)
+  3. [Simulation design I: Excess hazard models for insufficiently stratified life tables](http://www.rpubs.com/FJRubio/FGH)
+
+
+
+# Simulating times to event from the GH structure with a generic baseline hazard
+
+Given the simple, though rich, functional expression of the GH structure, simulating from this model is simple using the Probability Integral Transform (PIT).
+
+The idea is to simulate a uniform number $u\sim U(0,1)$, and to apply the PIT directly on the survival associated to the GH structure (recall that, if $U\sim U(0,1)$, then $1-U\sim U(0,1)$). This is, we need to solve the equation,
+
+$$S_{GH}(t) = \exp\left(-H^{\text{GH}}\left(t;{\bf x}_j\right) \right) = u,$$
+in terms of $t$. The steps for solving this equation are presented below,
+$$S_{GH}(t) = \exp\left(-H^{\text{GH}}\left(t;{\bf x}_j\right) \right) = u.$$
+Then,
+$$\exp\left\{-H_0\left(t \exp({\bf x}_j^{\top}\beta_1)\right)\exp(-{\bf x}_j^{\top}\beta_1+{\bf x}_j^{\top}\beta_2) \right\} = u,$$
+$\Rightarrow$
+$$S_0\left(t \exp({\bf x}_j^{\top}\beta_1)\right)^{\exp(-{\bf x}_j^{\top}\beta_1+{\bf x}_j^{\top}\beta_2)} = u,$$
+$\Rightarrow$
+$$\log S_0\left(t \exp({\bf x}_j^{\top}\beta_1)\right) = \dfrac{\log(u)}{{\exp(-{\bf x}_j^{\top}\beta_1+{\bf x}_j^{\top}\beta_2)}},$$
+$\Rightarrow$
+$$F_0\left(t \exp({\bf x}_j^{\top}\beta_1)\right) = 1-\exp\left\{\log(u)\exp({\bf x}_j^{\top}\beta_1-{\bf x}_j^{\top}\beta_2)\right\}.$$
+Thus, for a general choice of $F_0$ we have
+$$t = \dfrac{F_0^{-1}\left[1-\exp\left\{\log(u)\exp({\bf x}_j^{\top}\beta_1-{\bf x}_j^{\top}\beta_2)\right\}\right]}{\exp({\bf x}_j^{\top}\beta_1)}.$$
+
+
+# Example: Exponentiated Weibull baseline hazard
+
+For the particular of the choice of the EW distribution baseline hazard, where $F_0(t)=F_W^{\alpha}(t)$ and $F_W$ is the Weibull CDF (see [this link](http://rpubs.com/FJRubio/EWD)), we obtain:
+$$t = \dfrac{F_W^{-1}\left[\left(1-\exp\left\{\log(u)\exp({\bf x}_j^{\top}\beta_1-{\bf x}_j^{\top}\beta_2)\right\}\right)^{\frac{1}{\alpha}}\right]}{\exp({\bf x}_j^{\top}\beta_1)},$$
+where $F_W^{-1}$ is the Weibull quantile function, with fixed shape and scale parameters. Thus, this expression provides a simple way for simulating times to event with GH structure.
+
+The following R code illustrates the implementation of this simulation strategy.  We also illustrate how to fit a model with GH structure in the context of administrative censoring at 10 years of follow-up, adapting the R code in [this link](http://www.rpubs.com/FJRubio/GHGH).
+
+# Simulation in R
+
+```{r}
+rm(list=ls())
+library(knitr)
+library(mvtnorm)
+####################################################################################
+# seed      : seed for simulation
+# parEWH    : shape, scale, and power parameters of the EW baseline hazard
+# beta      : regression parameters multiplying the hazard
+# betaH     : regression parameters multiplying the time scale
+# n         : sample size
+# X         : Design matrix
+####################################################################################
+
+# Function to simulate times to event from a model with EW baseline hazard
+# and GH structure
+simGHEW <- function(seed, n, X, parEWH, betaH, beta){
+  a0 <- parEWH[1]; b0 <- parEWH[2]; c0 <- parEWH[3];
+  exp.xbetaH  <- exp(X%*%betaH)
+  exp.dif <- exp(X%*%(betaH - beta))
+  # Simulation
+  set.seed(seed)
+  temp.ut1  <- runif(n)
+  lifestimes <-  qweibull( ( 1 - exp( log(temp.ut1)*exp.dif ) )^(1/c0), scale=a0, shape=b0)/exp.xbetaH 
+  return(as.vector(lifestimes))
+}
+
+
+
+#################################################################################
+# Example 1
+#################################################################################
+seed1 <- 4
+# True values of the parameters
+a0 <- 1.75; b0 <- 0.7; c0 <- 2.5; beta <- c(0.2,0.3,0.4); betaH = c(0.4,0.3,0.2)
+n = 1000 # sample size
+
+# Simulated design matrix
+corr = 0.5
+p <- length(beta)
+X.Sigma <- matrix(corr, nrow=(p), ncol=(p)) + diag(p)*(1 - corr) # Correlation matrix
+set.seed(seed1)
+X= rmvnorm(n, sigma=X.Sigma) # Design matrix
+
+# Simulated life times
+sim0 <- simGHEW(seed1, n, X, c(a0,b0,c0), betaH, beta)
+hist(sim0)
+box()
+
+# Inducing non-informative censoring at C
+C <- 10
+sim <- ifelse(sim0 < C, sim0, C)
+ind.cens <- ifelse(sim0 < C, 1, 0)
+hist(sim)
+box()
+# Censored proportion
+1-mean(ind.cens)
+
+#--------------------------------------------------
+# Fitting a survival model with GH structure
+#--------------------------------------------------
+
+# Exponentiated Weibull Distribution #
+######################################
+# Hazard
+hexpw <- function(t,lambda,kappa,alpha){
+  pdf0 <-  alpha*dweibull(t,scale=lambda,shape=kappa)*pweibull(t,scale=lambda,shape=kappa)^(alpha-1) 
+  cdf0 <- pweibull(t,scale=lambda,shape=kappa)^alpha
+  return(pdf0/(1-cdf0))
+}                                                                                      
+
+# Cumulative hazard
+Hexpw <- function(t,lambda,kappa,alpha,log.p=FALSE){
+  cdf <- pweibull(t,scale=lambda,shape=kappa)^alpha  
+  return(-log(1-cdf))
+} 
+
+
+#--------------------------------------------------------------------------------------------------------
+# General Model
+#--------------------------------------------------------------------------------------------------------
+
+#----------------------------------------------
+# log-likelihood: EW Model
+#----------------------------------------------
+log.likewG <- function(par){
+  if(anyNA(par)) return(Inf)
+  ae0 <- par[1]; be0 <- par[2]; ce0=par[3]; beta0 <- par[4:(4+dim(X)[2]-1)]; beta1 <- tail(par,n = dim(X)[2]);
+  if(par[1]>0 & par[2]>0 & par[3]>0){
+    exp.x.beta0 <- exp(X%*%beta0)
+    exp.x.beta1 <- exp(X%*%beta1)
+    exp.x.dif <- exp(X%*%(beta1-beta0))
+    haz0 <- hexpw(sim*exp.x.beta0,ae0,be0,ce0)*exp.x.beta1
+    CH0 <- Hexpw(sim*exp.x.beta0,ae0,be0,ce0)*exp.x.dif
+    if(anyNA(CH0)) return(Inf)
+    if(anyNA(haz0)) return(Inf)
+    else  val <- - ind.cens*log(haz0) + CH0
+    return(sum(val))
+  }
+  else return(Inf)
+}
+
+OPTEWG <- nlminb(c(a0,b0,c0,betaH,beta), log.likewG,control=list(iter.max=10000))
+MLE <- cbind(c(a0,b0,c0,betaH,beta), OPTEWG$par)
+colnames(MLE) <- c("True Value", "MLE")
+kable(MLE)
+
+# True vs fitted baseline hazard
+h.true <- Vectorize(function(t) hexpw(t,a0,b0,c0))
+h.MLE <- Vectorize(function(t) hexpw(t,MLE[1,2],MLE[2,2],MLE[3,2]))
+curve(h.true,0,20, ylim = c(0,0.35), lwd = 2, n = 1000, ylab = "Hazard", xlab = "time", main = "True vs Fitted",
+      cex.axis = 1.5, cex.lab = 1.5)
+curve(h.MLE,0,20, add=T, lwd = 2, lty = 2, ylim = c(0,0.35), n = 1000)
+legend(15,0.35, c("True","Fitted"),
+       text.col = c("black","black"), col = c("black","black"), lty = c(1, 2),lwd=2,
+       merge = TRUE, bg = "gray90")
+```
+
+
+
+
+# References
