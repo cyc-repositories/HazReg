@@ -208,7 +208,7 @@ SPred_TVC <-
 #' @param hstr Hazard structure ("PH" for Proportional Hazards or "AFT" for Accelerated Failure Time)
 #' @param `ID_nm` - The name of the `ID` variable in `df`. Default "ID".
 #' @param `time_nm` - The name of the `time` variable in `df`. Default "time". 
-#' @param i Integer specifying the individual for whom the survival
+#' @param i Integer specifying the ID of the individual for whom the survival
 #'   function is to be evaluated.
 #' @param t Numeric value giving the time point at which the survival
 #'   function is evaluated. Must lie within the observation window of
@@ -239,6 +239,10 @@ SPred_TVC_i <- function(
     ID_nm = "ID", 
     time_nm = "time"
 ) {
+  #If you get a time of infinity at that point just return 0. 
+  if (t == Inf){
+    return(as.numeric(0))
+  }
   ## 1. Subset individual data
   dfi <- df[df[, ID_nm] == i, ]
   dfi <- dfi[order(dfi[, time_nm]), ]
@@ -335,7 +339,8 @@ SPred_TVC_i <- function(
 #'   \code{theta} determines whether a two- or three-parameter baseline is used.
 #' @param beta Numeric vector of regression coefficients corresponding to the
 #'   time-varying covariates.
-#'
+#' @param `t_upper` & @param `t_lower`: two vectors of length equal to the 
+#' number of observations in the data frame. 
 #' @return A list with components:
 #'   \itemize{
 #'     \item \code{time}: numeric vector of simulated event or censoring times.
@@ -354,27 +359,38 @@ SPred_TVC_i <- function(
 #'
 #' @export
 sim_TVC <- function(n = NULL, seed, df, chfun, hstr, theta, beta, ID_nm = "ID", 
-                    time_nm = "time"){
+                    time_nm = "time", t_upper = Inf, t_lower = 0){
 
   set.seed(seed)
   
   if (is.null(n)) n <- length(unique(df[, ID_nm]))
   sim    <- rep(NA, n)
-
-  ## Maximum follow-up times
+  if (length(t_upper) != n){ 
+    t_upper = rep(t_upper, n)
+  }
+  if (length(t_lower) != n){
+    t_lower = rep(t_lower, n)
+  }
+  ## Maximum follow-up times - construct initial upper bound. 
   times <- unlist(lapply(X = split(df, ~ df[,ID_nm]), FUN = function(x) max(x[, time_nm])),
                   use.names = F)
-
+  id_list = sort(unique(df[, ID_nm]))
   ## Uniform draws
-  u <- runif(n)
-  
+  #Construct bounds
+  q_min = mapply(FUN = function(ind, x) SPred_TVC_i(df= df, i = ind, t = x, beta = beta, theta = theta, 
+                      chfun = chfun, hstr = hstr, ID_nm = ID_nm, 
+                      time_nm = time_nm), id_list, t_upper)
+  q_max = mapply(FUN = function(ind, x) SPred_TVC_i(df= df, i = ind, t = x, beta = beta, theta = theta, 
+                      chfun = chfun, hstr = hstr, ID_nm = ID_nm, 
+                      time_nm = time_nm), id_list, t_lower)
+  u <- runif(n, min = q_min, max = q_max)
   ## Event times
   for (i in seq_len(n)) {
     ##evaluate the analytical expression for t using uniroot
     rootfun <- function(t) {
       SPred_TVC_i(
         df    = df,
-        i     = i,
+        i     = id_list[i],
         t     = t,
         beta  = beta,
         theta = theta,
@@ -387,9 +403,11 @@ sim_TVC <- function(n = NULL, seed, df, chfun, hstr, theta, beta, ID_nm = "ID",
     #find t which solves S(t) = u
     sim[i] <- uniroot(rootfun, interval = c(0, times[i]), extendInt = "downX", tol = 1e-8)$root
     }
-
+    
   return(sim)
 }
+
+
 
 
 
