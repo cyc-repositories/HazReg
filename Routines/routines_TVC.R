@@ -336,7 +336,7 @@ SPred_TVC_i <- function(
 #' The survival function is evaluated via \code{\link{SPred_TVC}} and
 #' \code{\link{SPred_TVC_i}}, ensuring consistency with the underlying
 #' cumulative hazard specification.
-#'
+#' @param n The number of observations to simulate, such that n is at most the number of unique IDs. 
 #' @param seed Integer random seed for reproducibility.
 #' @param df A data frame containing the longitudinal covariate information with:
 #'   \itemize{
@@ -372,7 +372,7 @@ SPred_TVC_i <- function(
 #' @seealso \code{\link{CH_TVC}}, \code{\link{SPred_TVC}}, \code{\link{SPred_TVC_i}}
 #'
 #' @export
-sim_TVC <- function(n = NULL, seed, df, chfun, hstr, theta, beta, ID_nm = "ID", 
+sim_TVC <- function(n = NULL, seed, df, hfun, hstr, theta, beta, ID_nm = "ID", 
                     time_nm = "time", t_upper = Inf, t_lower = 0){
 
   set.seed(seed)
@@ -459,7 +459,7 @@ sim_TVC <- function(n = NULL, seed, df, chfun, hstr, theta, beta, ID_nm = "ID",
 #' even if the event time does not coincide with a measurement time.
 #'
 #----------------------------------------------------------------------------------------
-#' @param status vector of event indicators (1 = event at the final time; 0 = censored)
+#' @param status vector of event indicators AT THE FINAL TIME (1 = event; 0 = censored)
 #'
 #----------------------------------------------------------------------------------------
 #' @param hstr Hazard structure ("PH" or "AFT")
@@ -565,15 +565,13 @@ HMLE_TVC <-  function (init,
     colnames(df)[!(colnames(df) %in% c(ID_nm, time_nm) ) ] = 
       sapply(FUN = function(x) paste("des", x, sep = ""), X = as.character(seq_len((ncol(df)-2) ) ) )
     #get max times for log-hazard component
-    times <- as.vector(with(df, tapply(time_nm, ID_nm, max)))
+    times <- as.vector(tapply(df[, time_nm], df[,ID_nm], max))
     #... and the associated design matrix component. 
-    last_rows <- df[ave(df[,time_nm], df[, ID_nm], FUN = max) == df[,time_nm], ]
-
+    last_rows <- df[ave(df[,time_nm], df[, ID_nm], FUN = max) == df[,time_nm], grep("^des", names(df))]
     status <- as.vector(as.logical(status))
     #get design matrix 
     
-    des = as.matrix(df[, grep("^des", names(df))])#df[ ,-names(df) %in% c(ID_nm, time_nm)]
-    
+    des = as.matrix(df[, grep("^des", names(df))])
     times.obs <- times[status]
     des_obs <- des[status, ]
     #weight component regularity step 
@@ -594,7 +592,7 @@ HMLE_TVC <-  function (init,
           theta = c(ae0,be0,ce0)
           beta <- par[4:(3 + p)]
           # Hazard calculations
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           exp.x.beta.obs <- exp.x.beta[status]
@@ -630,7 +628,7 @@ HMLE_TVC <-  function (init,
           ce0 <- exp(par[3])
           theta = c(ae0,be0,ce0)
           beta <- par[4:(3 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           lhaz0 <- weights(times.obs) * hew(times.obs, ae0, be0, ce0, log = TRUE) +
@@ -649,7 +647,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 < -sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -665,7 +663,7 @@ HMLE_TVC <-  function (init,
           ce0 <- exp(par[3])
           theta = c(ae0,be0,ce0)
           beta <- par[4:(3 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           lhaz0 <- weights(times.obs) * hggamma(times.obs, ae0, be0, ce0, log = TRUE) +
@@ -684,7 +682,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -699,7 +697,7 @@ HMLE_TVC <-  function (init,
           be0 <- exp(par[2])
           theta = c(ae0,be0)
           beta <- par[3:(2 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           lhaz0 <- weights(times.obs) * hlnorm(times.obs, ae0, be0, log = TRUE) +
@@ -719,7 +717,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
 
@@ -733,7 +731,7 @@ HMLE_TVC <-  function (init,
           be0 <- exp(par[2])
           theta = c(ae0,be0)
           beta <- par[3:(2 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           lhaz0 <- weights(times.obs) * hllogis(times.obs, ae0, be0, log = TRUE) +
@@ -752,7 +750,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -767,7 +765,7 @@ HMLE_TVC <-  function (init,
           be0 <- exp(par[2])
           theta = c(ae0,be0)
           beta <- par[3:(2 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           lhaz0 <- weights(times.obs) * hgamma(times.obs, ae0, be0, log = TRUE) +
@@ -786,7 +784,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -801,7 +799,7 @@ HMLE_TVC <-  function (init,
           be0 <- exp(par[2])
           theta = c(ae0,be0)
           beta <- par[3:(2 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           lhaz0 <- weights(times.obs) * hweibull(times.obs, ae0, be0, log = TRUE) +
@@ -820,7 +818,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -841,7 +839,7 @@ HMLE_TVC <-  function (init,
           ce0 <- exp(par[3])
           theta = c(ae0,be0,ce0)
           beta <- par[4:(3 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           exp.x.beta.obs <- exp.x.beta[status]
@@ -861,7 +859,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -877,7 +875,7 @@ HMLE_TVC <-  function (init,
           ce0 <- exp(par[3])
           theta = c(ae0,be0,ce0)
           beta <- par[4:(3 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           exp.x.beta.obs <- exp.x.beta[status]
@@ -897,7 +895,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
           
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -913,7 +911,7 @@ HMLE_TVC <-  function (init,
           ce0 <- exp(par[3])
           theta = c(ae0,be0,ce0)
           beta <- par[4:(3 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           exp.x.beta.obs <- exp.x.beta[status]
@@ -933,7 +931,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -948,7 +946,7 @@ HMLE_TVC <-  function (init,
           be0 <- exp(par[2])
           theta = c(ae0,be0)
           beta <- par[3:(2 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           exp.x.beta.obs <- exp.x.beta[status]
@@ -971,7 +969,7 @@ HMLE_TVC <-  function (init,
           lst <- split(df, df$ID)
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -986,7 +984,7 @@ HMLE_TVC <-  function (init,
           be0 <- exp(par[2])
           theta = c(ae0,be0)
           beta <- par[3:(2 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           exp.x.beta.obs <- exp.x.beta[status]
@@ -1009,7 +1007,7 @@ HMLE_TVC <-  function (init,
           lst <- split(df, df$ID)
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -1024,7 +1022,7 @@ HMLE_TVC <-  function (init,
           be0 <- exp(par[2])
           theta = c(ae0,be0)
           beta <- par[3:(2 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           exp.x.beta.obs <- exp.x.beta[status]
@@ -1044,7 +1042,7 @@ HMLE_TVC <-  function (init,
           )$cum_hazard
 
           # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
 
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
@@ -1059,7 +1057,7 @@ HMLE_TVC <-  function (init,
           be0 <- exp(par[2])
           theta = c(ae0,be0)
           beta <- par[3:(2 + p)]
-          x.beta <- des %*% beta
+          x.beta <- data.matrix(last_rows) %*% beta
           x.beta.obs <- x.beta[status]
           exp.x.beta <- as.vector(exp(x.beta))
           exp.x.beta.obs <- exp.x.beta[status]
@@ -1077,13 +1075,9 @@ HMLE_TVC <-  function (init,
             time_nm = time_nm,
             weights = weights
           )$cum_hazard
-
-          # split by ID
-          lst <- split(df, df$ID)
-
-          # sum the max for each ID
-          chaz0 <-sum(tapply(df$CH_t, df$ID, max, na.rm = TRUE))
-
+          print(df$CH_t)
+          # sum the last for each ID
+          chaz0 <-sum(tapply(df$CH_t, df$ID, tail, n = 1, na.rm = TRUE))
           # Negative log-likelihood
           val <- -sum(lhaz0) + sum(chaz0)
 
@@ -1103,6 +1097,7 @@ HMLE_TVC <-  function (init,
     }
     OUT <- list(log_lik = log.lik, OPT = OPT)
     return(OUT)
-  }
+}
+
 
 
